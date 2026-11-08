@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dunia Sifir Interaktif - Operasi Darab</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#4F46E5',
+                            purple: '#7C3AED',
+                            pink: '#EC4899',
+                            yellow: '#F59E0B',
+                            green: '#10B981',
+                            bg: '#F3F4F6'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        quicksand: ['Quicksand', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0f4f8;
+        }
+        h1, h2, h3, .font-fun {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* 3D Flip Card Effect */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 antialiased selection:bg-brand-purple selection:text-white">
+
+    <!-- Header / Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('rujukan')">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-brand-blue to-brand-purple rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-200 transform hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-xmark"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-brand-blue via-brand-purple to-brand-pink bg-clip-text text-transparent">
+                            Bijak Sifir!
+                        </h1>
+                        <p class="text-xs text-slate-500 font-semibold">Operasi Darab 1 - 12</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex space-x-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button id="nav-rujukan" onclick="switchTab('rujukan')" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center space-x-2 bg-white text-brand-purple shadow-sm">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Rujukan Sifir</span>
+                    </button>
+                    <button id="nav-flashcard" onclick="switchTab('flashcard')" class="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-brand-purple transition-all duration-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Flashcard (30 Soalan)</span>
+                    </button>
+                    <button id="nav-worksheet" onclick="switchTab('worksheet')" class="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-brand-purple transition-all duration-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-file-pen"></i>
+                        <span>Live Worksheet (50 Soalan)</span>
+                    </button>
+                </nav>
+
+                <!-- Audio Toggle & Mobile Menu Btn -->
+                <div class="flex items-center space-x-2">
+                    <button id="audio-toggle" onclick="toggleAudio()" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition" title="Pasang/Bisu Bunyi">
+                        <i class="fa-solid fa-volume-high text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Bar -->
+        <div class="md:hidden flex border-t border-slate-200 bg-white justify-around p-2">
+            <button id="mob-nav-rujukan" onclick="switchTab('rujukan')" class="flex-1 py-2 text-center text-xs font-bold text-brand-purple border-b-2 border-brand-purple">
+                <i class="fa-solid fa-book-open block text-base mb-1"></i> Rujukan
+            </button>
+            <button id="mob-nav-flashcard" onclick="switchTab('flashcard')" class="flex-1 py-2 text-center text-xs font-bold text-slate-500">
+                <i class="fa-solid fa-bolt block text-base mb-1"></i> Flashcard
+            </button>
+            <button id="mob-nav-worksheet" onclick="switchTab('worksheet')" class="flex-1 py-2 text-center text-xs font-bold text-slate-500">
+                <i class="fa-solid fa-file-pen block text-base mb-1"></i> Worksheet
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= SECTION 1: RUJUKAN SIFIR 1 - 12 ================= -->
+        <section id="section-rujukan" class="space-y-6">
+            <!-- Header Section -->
+            <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-20 text-9xl font-bold font-fun">×</div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">Panduan Penuh</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mt-2 font-fun">Jadual Rujukan Sifir 1 hingga 12</h2>
+                    <p class="mt-2 text-indigo-100 text-sm sm:text-base">Pilih sifir tertentu atau lihat Jadual Grid Darab interaktif untuk menyemak jawapan operasi darab anda dengan mudah!</p>
+                </div>
+            </div>
+
+            <!-- View Controls -->
+            <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <!-- Sifir Selector Buttons (1-12) -->
+                <div id="sifir-buttons-container" class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 w-full lg:w-auto">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Pilih:</span>
+                    <button onclick="filterSifir('all')" id="btn-sifir-all" class="sifir-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-brand-purple text-white shadow-sm transition">Semua</button>
+                </div>
+
+                <!-- Toggle Grid View Button -->
+                <button onclick="toggleGridView()" id="btn-toggle-grid" class="px-4 py-2 rounded-xl bg-indigo-50 text-brand-purple hover:bg-indigo-100 font-bold text-xs transition flex items-center space-x-2">
+                    <i class="fa-solid fa-table-cells"></i>
+                    <span id="grid-btn-text">Paparkan Jadual Grid Sifir</span>
+                </button>
+            </div>
+
+            <!-- Grid Sifir Matrix View (Hidden by Default) -->
+            <div id="grid-matrix-container" class="hidden bg-white p-6 rounded-3xl shadow-md border border-slate-200 overflow-x-auto">
+                <h3 class="text-xl font-bold text-slate-800 mb-4 font-fun flex items-center space-x-2">
+                    <i class="fa-solid fa-table text-brand-purple"></i>
+                    <span>Jadual Grid Darab (100x Matrix)</span>
+                </h3>
+                <div class="inline-block min-w-full">
+                    <table class="w-full text-center border-collapse">
+                        <thead id="matrix-table-head">
+                            <!-- Matrix header rendered dynamically -->
+                        </thead>
+                        <tbody id="matrix-table-body">
+                            <!-- Matrix rows rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Individual Cards Container (Sifir 1 - 12) -->
+            <div id="sifir-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Generated dynamically by Javascript -->
+            </div>
+        </section>
+
+        <!-- ================= SECTION 2: FLASHCARD 30 SOALAN ================= -->
+        <section id="section-flashcard" class="hidden space-y-6">
+            <!-- Header Section -->
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 opacity-20 text-9xl font-bold font-fun"><i class="fa-solid fa-bolt"></i></div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">Latihan Pantas</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mt-2 font-fun">Cabaran Flashcard 30 Soalan</h2>
+                    <p class="mt-2 text-amber-100 text-sm sm:text-base">Uji kepantasan minda anda! Taip jawapan atau pusing kad untuk semak jawapan betul. 30 soalan rawak menanti anda.</p>
+                </div>
+            </div>
+
+            <!-- Flashcard App Main Container -->
+            <div class="max-w-2xl mx-auto">
+                <!-- Status & Progress Bar -->
+                <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200 mb-6 space-y-4">
+                    <div class="flex justify-between items-center text-sm font-bold text-slate-600">
+                        <span id="fc-progress-text">Soalan 1 daripada 30</span>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-emerald-600 flex items-center space-x-1">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span id="fc-score-correct">0</span>
+                            </span>
+                            <span class="text-rose-500 flex items-center space-x-1">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                                <span id="fc-score-wrong">0</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+                        <div id="fc-progress-bar" class="bg-gradient-to-r from-amber-500 to-orange-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive 3D Card Area -->
+                <div id="fc-game-area" class="space-y-6">
+                    <div id="flashcard-element" class="relative w-full h-72 sm:h-80 perspective-1000 cursor-pointer" onclick="flipFlashcard()">
+                        <!-- Inner Flip Container -->
+                        <div id="flashcard-inner" class="w-full h-full duration-500 transform-style-3d transition-transform relative rounded-3xl shadow-xl border-4 border-white bg-white">
+                            
+                            <!-- Front Side (Question) -->
+                            <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl flex flex-col items-center justify-center p-6 backface-hidden">
+                                <span class="bg-indigo-100 text-brand-purple text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4">Soalan Darab</span>
+                                <div id="fc-question-text" class="text-5xl sm:text-6xl font-bold font-fun text-slate-800 tracking-wider">
+                                    7 × 8 = ?
+                                </div>
+                                <p class="text-xs text-slate-400 mt-6 flex items-center space-x-1">
+                                    <i class="fa-solid fa-rotate"></i>
+                                    <span>Klik kad untuk lihat jawapan</span>
+                                </p>
+                            </div>
+
+                            <!-- Back Side (Answer) -->
+                            <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-2xl flex flex-col items-center justify-center p-6 backface-hidden rotate-y-180">
+                                <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">Jawapan Betul</span>
+                                <div id="fc-answer-text" class="text-6xl sm:text-7xl font-bold font-fun tracking-wider">
+                                    56
+                                </div>
+                                <p id="fc-explanation-text" class="text-sm text-indigo-200 mt-4 font-semibold">7 didarab dengan 8 bersamaan 56</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Input & Controls Area -->
+                    <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200 space-y-4">
+                        <form onsubmit="submitFlashcardAnswer(event)" class="flex gap-3">
+                            <input type="number" id="fc-user-input" placeholder="Masukkan jawapan..." class="flex-grow px-5 py-3.5 text-lg rounded-2xl border-2 border-slate-200 focus:border-brand-purple focus:outline-none font-bold text-center text-slate-800 shadow-inner" autocomplete="off">
+                            <button type="submit" class="px-6 py-3.5 bg-brand-purple hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center space-x-2">
+                                <span>Hantar</span>
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+
+                        <div class="flex justify-between items-center pt-2">
+                            <button onclick="flipFlashcard()" class="text-xs font-bold text-slate-500 hover:text-brand-purple transition flex items-center space-x-1">
+                                <i class="fa-solid fa-eye"></i>
+                                <span>Pusing Kad</span>
+                            </button>
+                            <button onclick="skipFlashcard()" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition">
+                                Langkau Soalan <i class="fa-solid fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flashcard Summary Result (Hidden by default) -->
+                <div id="fc-result-area" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center space-y-6">
+                    <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto shadow-inner">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-bold text-slate-800 font-fun">Tahniah! Selesai 30 Soalan!</h3>
+                        <p class="text-slate-500 mt-1 text-sm">Berikut adalah keputusan latihan flashcard anda:</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto">
+                        <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                            <span class="block text-xs font-bold text-emerald-600 uppercase">Betul</span>
+                            <span id="fc-final-correct" class="text-3xl font-bold text-emerald-700 font-fun">0</span>
+                        </div>
+                        <div class="bg-rose-50 p-4 rounded-2xl border border-rose-100">
+                            <span class="block text-xs font-bold text-rose-600 uppercase">Salah / Langkau</span>
+                            <span id="fc-final-wrong" class="text-3xl font-bold text-rose-700 font-fun">0</span>
+                        </div>
+                    </div>
+
+                    <button onclick="restartFlashcards()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-200 transition font-fun text-lg">
+                        <i class="fa-solid fa-rotate-right mr-2"></i> Cuba Sekali Lagi
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= SECTION 3: LIVE WORKSHEETS 50 SOALAN ================= -->
+        <section id="section-worksheet" class="hidden space-y-6">
+            <!-- Header Section -->
+            <div class="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 opacity-20 text-9xl font-bold font-fun"><i class="fa-solid fa-file-pen"></i></div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">Lembaran Kerja Interaktif</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mt-2 font-fun">Live Worksheets 50 Soalan</h2>
+                    <p class="mt-2 text-teal-100 text-sm sm:text-base">Jawab 50 soalan darab secara langsung di bawah. Setiap soalan akan terus disemak sebaik sahaja anda memasukkan jawapan!</p>
+                </div>
+            </div>
+
+            <!-- Worksheet Form Container -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-slate-200 space-y-6">
+                <!-- Action Header Bar -->
+                <div class="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 font-fun">Lembaran Kerja Ujian Darab</h3>
+                        <p class="text-xs text-slate-400">Set soalan rawak sifir 1 hingga 12</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="resetWorksheet()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>Jana Soalan Baru</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Worksheet Questions Grid (50 Questions) -->
+                <form id="worksheet-form" onsubmit="gradeWorksheet(event)">
+                    <div id="worksheet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <!-- 50 Input Items will be rendered here dynamically -->
+                    </div>
+
+                    <!-- Score Result Box (Hidden until submitted) -->
+                    <div id="worksheet-result-banner" class="hidden mt-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 text-center space-y-3">
+                        <h4 class="text-2xl font-bold text-slate-800 font-fun">Keputusan Lembaran Kerja Anda</h4>
+                        <div class="flex justify-center items-center space-x-6">
+                            <div>
+                                <span class="text-xs text-slate-500 font-bold uppercase">Markah Keseluruhan</span>
+                                <div id="ws-score-percent" class="text-4xl font-bold text-brand-purple font-fun">0%</div>
+                            </div>
+                            <div class="h-10 w-px bg-slate-300"></div>
+                            <div>
+                                <span class="text-xs text-slate-500 font-bold uppercase">Betul / Total</span>
+                                <div id="ws-score-count" class="text-2xl font-bold text-emerald-600 font-fun">0 / 50</div>
+                            </div>
+                        </div>
+                        <p id="ws-feedback-msg" class="text-sm font-semibold text-slate-600">Teruskan berusaha untuk mencapai markah penuh!</p>
+                    </div>
+
+                    <!-- Bottom Action Button -->
+                    <div class="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-end gap-3">
+                        <button type="button" onclick="resetWorksheet()" class="px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition">
+                            Padam Semua / Reset
+                        </button>
+                        <button type="submit" class="px-8 py-3.5 rounded-2xl bg-brand-green hover:bg-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-100 transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Semak Jawapan Saya</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>© Dunia Sifir Interaktif. Dibina khusus untuk memudahkan pembelajaran matematik darab.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // ================= GLOBAL STATE =================
+        let soundEnabled = true;
+
+        // Flashcard State
+        let fcQuestions = [];
+        let fcCurrentIndex = 0;
+        let fcScoreCorrect = 0;
+        let fcScoreWrong = 0;
+        let fcIsFlipped = false;
+
+        // Worksheet State
+        let wsQuestions = [];
+
+        // Simple Audio Synthesizer via Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                    osc.frequency.setValueAtTime(180, audioCtx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'flip') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.08);
+                }
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('audio-toggle');
+            if (soundEnabled) {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high text-lg"></i>`;
+                btn.classList.remove('text-rose-500');
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark text-lg"></i>`;
+                btn.classList.add('text-rose-500');
+            }
+        }
+
+        // Navigation Tabs Switcher
+        function switchTab(tabId) {
+            document.getElementById('section-rujukan').classList.add('hidden');
+            document.getElementById('section-flashcard').classList.add('hidden');
+            document.getElementById('section-worksheet').classList.add('hidden');
+
+            // Reset Nav Styles Desktop
+            ['rujukan', 'flashcard', 'worksheet'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (btn) {
+                    btn.className = "px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-brand-purple transition-all duration-200 flex items-center space-x-2";
+                }
+                const mobBtn = document.getElementById(`mob-nav-${t}`);
+                if (mobBtn) {
+                    mobBtn.className = "flex-1 py-2 text-center text-xs font-bold text-slate-500";
+                }
+            });
+
+            // Activate Tab
+            document.getElementById(`section-${tabId}`).classList.remove('hidden');
+            
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.className = "px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center space-x-2 bg-white text-brand-purple shadow-sm";
+            }
+
+            const activeMobNav = document.getElementById(`mob-nav-${tabId}`);
+            if (activeMobNav) {
+                activeMobNav.className = "flex-1 py-2 text-center text-xs font-bold text-brand-purple border-b-2 border-brand-purple";
+            }
+        }
+
+        // ================= 1. RUJUKAN SIFIR LOGIC =================
+        function initRujukan() {
+            // Build Sifir Selection Buttons dynamically
+            const btnContainer = document.getElementById('sifir-buttons-container');
+            for (let i = 1; i <= 12; i++) {
+                const btn = document.createElement('button');
+                btn.id = `btn-sifir-${i}`;
+                btn.className = "sifir-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+                btn.textContent = `Sifir ${i}`;
+                btn.onclick = () => filterSifir(i);
+                btnContainer.appendChild(btn);
+            }
+
+            // Build Sifir Cards Grid
+            const grid = document.getElementById('sifir-cards-grid');
+            grid.innerHTML = '';
+
+            const colors = [
+                'from-blue-500 to-indigo-600',
+                'from-purple-500 to-pink-600',
+                'from-emerald-500 to-teal-600',
+                'from-amber-500 to-orange-600',
+                'from-rose-500 to-red-600',
+                'from-cyan-500 to-blue-600',
+                'from-indigo-500 to-purple-600',
+                'from-pink-500 to-rose-600',
+                'from-teal-500 to-emerald-600',
+                'from-orange-500 to-amber-600',
+                'from-violet-500 to-purple-600',
+                'from-fuchsia-500 to-pink-600'
+            ];
+
+            for (let num = 1; num <= 12; num++) {
+                const color = colors[num - 1];
+                let itemsHtml = '';
+
+                for (let i = 1; i <= 12; i++) {
+                    itemsHtml += `
+                        <div class="flex justify-between items-center py-1.5 px-3 rounded-lg hover:bg-slate-50 transition text-sm">
+                            <span class="font-semibold text-slate-600">${i} × ${num}</span>
+                            <span class="font-bold text-slate-800">${i * num}</span>
+                        </div>
+                    `;
+                }
+
+                const card = `
+                    <div id="card-sifir-${num}" class="sifir-card bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition">
+                        <div class="bg-gradient-to-r ${color} p-4 text-white text-center">
+                            <h3 class="text-2xl font-bold font-fun">Sifir ${num}</h3>
+                        </div>
+                        <div class="p-4 space-y-1">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            }
+
+            // Build Matrix Table Header
+            const thead = document.getElementById('matrix-table-head');
+            let trHead = `<tr class="bg-indigo-50 text-brand-purple font-bold"><th class="p-2 border border-slate-200 rounded-tl-xl">×</th>`;
+            for (let i = 1; i <= 12; i++) {
+                trHead += `<th class="p-2 border border-slate-200 text-sm font-bold">${i}</th>`;
+            }
+            trHead += `</tr>`;
+            thead.innerHTML = trHead;
+
+            // Build Matrix Table Body
+            const tbody = document.getElementById('matrix-table-body');
+            tbody.innerHTML = '';
+            for (let row = 1; row <= 12; row++) {
+                let tr = `<tr class="hover:bg-slate-50">`;
+                tr += `<td class="p-2 border border-slate-200 font-bold bg-indigo-50 text-brand-purple text-sm">${row}</td>`;
+                for (let col = 1; col <= 12; col++) {
+                    tr += `<td class="p-2 border border-slate-200 text-sm font-semibold text-slate-700">${row * col}</td>`;
+                }
+                tr += `</tr>`;
+                tbody.innerHTML += tr;
+            }
+        }
+
+        function filterSifir(val) {
+            document.querySelectorAll('.sifir-btn').forEach(b => {
+                b.className = "sifir-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+            });
+
+            if (val === 'all') {
+                document.getElementById('btn-sifir-all').className = "sifir-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-brand-purple text-white shadow-sm transition";
+                document.querySelectorAll('.sifir-card').forEach(c => c.classList.remove('hidden'));
+            } else {
+                document.getElementById(`btn-sifir-${val}`).className = "sifir-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-brand-purple text-white shadow-sm transition";
+                document.querySelectorAll('.sifir-card').forEach(c => c.classList.add('hidden'));
+                const selectedCard = document.getElementById(`card-sifir-${val}`);
+                if (selectedCard) selectedCard.classList.remove('hidden');
+            }
+        }
+
+        function toggleGridView() {
+            const container = document.getElementById('grid-matrix-container');
+            const btnText = document.getElementById('grid-btn-text');
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                btnText.textContent = "Sembunyikan Jadual Grid";
+            } else {
+                container.classList.add('hidden');
+                btnText.textContent = "Paparkan Jadual Grid Sifir";
+            }
+        }
+
+        // ================= 2. FLASHCARD LOGIC =================
+        function generateFlashcards() {
+            fcQuestions = [];
+            for (let i = 0; i < 30; i++) {
+                const n1 = Math.floor(Math.random() * 12) + 1;
+                const n2 = Math.floor(Math.random() * 12) + 1;
+                fcQuestions.push({ num1: n1, num2: n2, ans: n1 * n2 });
+            }
+            fcCurrentIndex = 0;
+            fcScoreCorrect = 0;
+            fcScoreWrong = 0;
+            updateFlashcardUI();
+        }
+
+        function updateFlashcardUI() {
+            if (fcCurrentIndex >= fcQuestions.length) {
+                // Show final result
+                document.getElementById('fc-game-area').classList.add('hidden');
+                document.getElementById('fc-result-area').classList.remove('hidden');
+                document.getElementById('fc-final-correct').textContent = fcScoreCorrect;
+                document.getElementById('fc-final-wrong').textContent = fcScoreWrong;
+
+                // Confetti if score is high
+                if (fcScoreCorrect >= 20 && typeof confetti === 'function') {
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+                return;
+            }
+
+            // Ensure card is non-flipped when loading new question
+            const inner = document.getElementById('flashcard-inner');
+            inner.classList.remove('rotate-y-180');
+            fcIsFlipped = false;
+
+            const q = fcQuestions[fcCurrentIndex];
+            document.getElementById('fc-question-text').textContent = `${q.num1} × ${q.num2} = ?`;
+            document.getElementById('fc-answer-text').textContent = q.ans;
+            document.getElementById('fc-explanation-text').textContent = `${q.num1} didarab dengan ${q.num2} bersamaan ${q.ans}`;
+
+            // Update Header Stats
+            document.getElementById('fc-progress-text').textContent = `Soalan ${fcCurrentIndex + 1} daripada 30`;
+            document.getElementById('fc-score-correct').textContent = fcScoreCorrect;
+            document.getElementById('fc-score-wrong').textContent = fcScoreWrong;
+
+            // Progress bar width
+            const pct = ((fcCurrentIndex) / 30) * 100;
+            document.getElementById('fc-progress-bar').style.width = `${pct}%`;
+
+            // Reset Input
+            const input = document.getElementById('fc-user-input');
+            input.value = '';
+            input.focus();
+        }
+
+        function flipFlashcard() {
+            const inner = document.getElementById('flashcard-inner');
+            fcIsFlipped = !fcIsFlipped;
+            if (fcIsFlipped) {
+                inner.classList.add('rotate-y-180');
+            } else {
+                inner.classList.remove('rotate-y-180');
+            }
+            playSound('flip');
+        }
+
+        function submitFlashcardAnswer(e) {
+            e.preventDefault();
+            const input = document.getElementById('fc-user-input');
+            const val = parseInt(input.value.trim());
+
+            if (isNaN(val)) return;
+
+            const q = fcQuestions[fcCurrentIndex];
+            if (val === q.ans) {
+                fcScoreCorrect++;
+                playSound('correct');
+            } else {
+                fcScoreWrong++;
+                playSound('wrong');
+            }
+
+            fcCurrentIndex++;
+            updateFlashcardUI();
+        }
+
+        function skipFlashcard() {
+            fcScoreWrong++;
+            playSound('wrong');
+            fcCurrentIndex++;
+            updateFlashcardUI();
+        }
+
+        function restartFlashcards() {
+            document.getElementById('fc-game-area').classList.remove('hidden');
+            document.getElementById('fc-result-area').classList.add('hidden');
+            generateFlashcards();
+        }
+
+        // ================= 3. LIVE WORKSHEETS 50 SOALAN LOGIC =================
+        function generateWorksheet() {
+            wsQuestions = [];
+            const grid = document.getElementById('worksheet-grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 50; i++) {
+                const n1 = Math.floor(Math.random() * 12) + 1;
+                const n2 = Math.floor(Math.random() * 12) + 1;
+                const ans = n1 * n2;
+                wsQuestions.push({ id: i, num1: n1, num2: n2, ans: ans });
+
+                const itemHtml = `
+                    <div id="ws-item-${i}" class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-1 transition-all duration-200">
+                        <div class="flex items-center justify-between space-x-2 w-full">
+                            <span class="text-xs font-bold text-slate-400 w-5">${i + 1}.</span>
+                            <span class="font-bold text-slate-700 text-sm flex-grow text-center">${n1} × ${n2} =</span>
+                            <input type="number" id="ws-input-${i}" onchange="checkSingleAnswer(${i})" onfocus="clearSingleStatus(${i})" class="w-16 py-1.5 px-2 bg-white border border-slate-300 rounded-xl font-bold text-center text-sm focus:outline-none focus:border-brand-purple shadow-sm" placeholder="?" autocomplete="off">
+                            <span id="ws-status-${i}" class="w-5 text-center text-xs"></span>
+                        </div>
+                        <div id="ws-correct-ans-${i}" class="hidden text-right text-xs font-bold text-rose-600 pt-1 border-t border-rose-200/60"></div>
+                    </div>
+                `;
+                grid.innerHTML += itemHtml;
+            }
+
+            // Hide previous results banner
+            document.getElementById('worksheet-result-banner').classList.add('hidden');
+        }
+
+        // Padam penanda jika murid tekan semula untuk betulkan jawapan
+        function clearSingleStatus(index) {
+            const itemBox = document.getElementById(`ws-item-${index}`);
+            const status = document.getElementById(`ws-status-${index}`);
+            const correctAnsBox = document.getElementById(`ws-correct-ans-${index}`);
+            
+            itemBox.className = "bg-slate-50 p-3 rounded-2xl border-2 border-brand-purple flex flex-col justify-between space-y-1 transition-all duration-200";
+            status.innerHTML = '';
+            correctAnsBox.classList.add('hidden');
+        }
+
+        // Semak jawapan SELESAI murid taip (apabila input hilang fokus / selesai masukkan digit)
+        function checkSingleAnswer(index) {
+            const input = document.getElementById(`ws-input-${index}`);
+            const itemBox = document.getElementById(`ws-item-${index}`);
+            const status = document.getElementById(`ws-status-${index}`);
+            const correctAnsBox = document.getElementById(`ws-correct-ans-${index}`);
+            const valStr = input.value.trim();
+            const q = wsQuestions[index];
+
+            if (valStr === '') {
+                // Reset ke keadaan asal jika dipadam
+                itemBox.className = "bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-1 transition-all duration-200";
+                status.innerHTML = '';
+                correctAnsBox.classList.add('hidden');
+                return;
+            }
+
+            const userVal = parseInt(valStr);
+
+            if (userVal === q.ans) {
+                itemBox.className = "bg-emerald-50 p-3 rounded-2xl border-2 border-emerald-400 flex flex-col justify-between space-y-1 transition-all duration-200";
+                status.innerHTML = `<i class="fa-solid fa-check text-emerald-600 text-base"></i>`;
+                correctAnsBox.classList.add('hidden');
+            } else {
+                itemBox.className = "bg-rose-50 p-3 rounded-2xl border-2 border-rose-300 flex flex-col justify-between space-y-1 transition-all duration-200";
+                status.innerHTML = `<i class="fa-solid fa-xmark text-rose-500 text-base"></i>`;
+                correctAnsBox.textContent = `Jawapan betul: ${q.ans}`;
+                correctAnsBox.classList.remove('hidden');
+            }
+        }
+
+        function gradeWorksheet(e) {
+            e.preventDefault();
+            let correctCount = 0;
+
+            wsQuestions.forEach((q, i) => {
+                checkSingleAnswer(i);
+                const input = document.getElementById(`ws-input-${i}`);
+                const userVal = parseInt(input.value.trim());
+
+                if (userVal === q.ans) {
+                    correctCount++;
+                }
+            });
+
+            // Calculate score percentage
+            const pct = Math.round((correctCount / 50) * 100);
+            document.getElementById('ws-score-percent').textContent = `${pct}%`;
+            document.getElementById('ws-score-count').textContent = `${correctCount} / 50`;
+
+            const banner = document.getElementById('worksheet-result-banner');
+            const feedback = document.getElementById('ws-feedback-msg');
+            banner.classList.remove('hidden');
+
+            if (pct >= 80) {
+                feedback.textContent = "Syabas! Penguasaan sifir anda amat cemerlang! 🎉";
+                playSound('correct');
+                if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80 });
+            } else if (pct >= 50) {
+                feedback.textContent = "Bagus! Anda semakin mahir. Semak jawapan betul yang ditunjukkan dan tingkatkan lagi latihan!";
+                playSound('correct');
+            } else {
+                feedback.textContent = "Jangan putus asa! Rujuk jawapan betul di atas atau pusingkan Rujukan Sifir dan cuba lagi.";
+                playSound('wrong');
+            }
+
+            // Scroll down to results smoothly
+            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetWorksheet() {
+            generateWorksheet();
+        }
+
+        // Initialize Everything on Load
+        window.onload = function() {
+            initRujukan();
+            generateFlashcards();
+            generateWorksheet();
+        };
+    </script>
+</body>
+</html>
